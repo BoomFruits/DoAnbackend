@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Booking Confirmation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .email-container {
+            max-width: 700px;
+            margin: auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            background-color: #007BFF;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .body {
+            padding: 30px;
+        }
+
+        .info {
+            margin: 20px 0;
+        }
+
+            .info strong {
+                display: inline-block;
+                width: 140px;
+            }
+
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+            .details-table th, .details-table td {
+                border: 1px solid #ddd;
+                padding: 12px;
+                text-align: center;
+            }
+
+            .details-table th {
+                background-color: #f2f2f2;
+            }
+
+        .btn {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 12px 20px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .footer {
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 15px;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>Booking Confirmed</h1>
+        </div>
+        <div class="body">
+            <p>Hi <strong>{{CustomerName}}</strong>,</p>
+            <p>Your booking has been confirmed. Here are your booking details:</p>
+
+            <div class="info">
+                <p><strong>Booking ID:</strong> {{BookingId}}</p>
+                <p><strong>Booking Date:</strong> {{BookingDate}}</p>
+                <p><strong>Payment Method:</strong> {{PaymentMethod}}</p>
+                <p><strong>Status:</strong> {{Status}}</p>
+                <p><strong>Note:</strong> {{Note}}</p>
+            </div>
+
+            <table class="details-table">
+                <thead>
+                    <tr>
+                        <th>Room</th>
+                        <th>Check-in</th>
+                        <th>Check-out</th>
+                        <th>Price/Night</th>
+                        <th>Total Days</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each BookingDetails}}
+                    <tr>
+                        <td>{{RoomName}}</td>
+                        <td>{{CheckinDate}}</td>
+                        <td>{{CheckoutDate}}</td>
+                        <td>${{Price}}</td>
+                        <td>{{Unit}}</td>
+                        <td>${{Total}}</td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+
+            <p style="margin-top: 20px;"><strong>Grand Total:</strong> <span style="font-size: 18px; color: #007BFF;">${{GrandTotal}}</span></p>
+
+            <a href="{{BookingLink}}" class="btn">View Booking</a>
+        </div>
+        <div class="footer">
+            &copy; 2025 BookingApp. All rights reserved.<br />
+            Contact: support@bookingapp.com
+        </div>
+    </div>
+</body>
+</html>

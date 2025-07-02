@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng ký thành công</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f6f6f6;
+            padding: 20px;
+        }
+
+        .email-container {
+            background-color: #fff;
+            border-radius: 8px;
+            max-width: 600px;
+            margin: auto;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 13px;
+            color: #888;
+            text-align: center;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 20px;
+            background-color: #007bff;
+            color: #fff !important;
+            text-decoration: none;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <h2>Chào mừng bạn đến với hệ thống của chúng tôi!</h2>
+        <p>Xin chào <strong>{{username}}</strong>,</p>
+        <p>Bạn đã đăng ký tài khoản thành công.</p>
+        <p>Nếu bạn có bất kỳ câu hỏi nào, hãy liên hệ với chúng tôi qua email hoặc hotline.</p>
+
+        <a class="btn" href="http://localhost:4200/#/login">Đăng nhập ngay</a>
+        <div class="footer">
+            © 2025 Booking Hotel App. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>
