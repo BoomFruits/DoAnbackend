@@ -82,25 +82,25 @@
         </div>
         <div class="body">
             <p>Hi <strong>{{CustomerName}}</strong>,</p>
-            <p>Your booking has been confirmed. Here are your booking details:</p>
+            <p>Đơn đặt phòng của bạn đã được xác nhận. Đây là chi tiết đơn:</p>
 
             <div class="info">
-                <p><strong>Booking ID:</strong> {{BookingId}}</p>
-                <p><strong>Booking Date:</strong> {{BookingDate}}</p>
-                <p><strong>Payment Method:</strong> {{PaymentMethod}}</p>
-                <p><strong>Status:</strong> {{Status}}</p>
-                <p><strong>Note:</strong> {{Note}}</p>
+                <p><strong>Mã đặt phòng:</strong> {{BookingId}}</p>
+                <p><strong>Ngày đặt:</strong> {{BookingDate}}</p>
+                <p><strong>Phương thức thanh toán:</strong> {{PaymentMethod}}</p>
+                <p><strong>Trạng thái đơn:</strong> {{Status}}</p>
+                <p><strong>Ghi chú:</strong> {{Note}}</p>
             </div>
 
             <table class="details-table">
                 <thead>
                     <tr>
-                        <th>Room</th>
+                        <th>Phòng</th>
                         <th>Check-in</th>
                         <th>Check-out</th>
-                        <th>Price/Night</th>
-                        <th>Total Days</th>
-                        <th>Total</th>
+                        <th>Giá/Ngày đêm</th>
+                        <th>Tổn số ngày lưu trú</th>
+                        <th>Tổng</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -111,19 +111,19 @@
                         <td>{{CheckoutDate}}</td>
                         <td>${{Price}}</td>
                         <td>{{Unit}}</td>
-                        <td>${{Total}}</td>
+                        <td>{{Total}}</td>
                     </tr>
                     {{/each}}
                 </tbody>
             </table>
 
-            <p style="margin-top: 20px;"><strong>Grand Total:</strong> <span style="font-size: 18px; color: #007BFF;">${{GrandTotal}}</span></p>
+            <p style="margin-top: 20px;"><strong>Tổng tiền:</strong> <span style="font-size: 18px; color: #007BFF;">{{GrandTotal}}</span></p>
 
-            <a href="{{BookingLink}}" class="btn">View Booking</a>
+            <a href="{{BookingLink}}" class="btn">Xem chi tiết dặt phòng</a>
         </div>
         <div class="footer">
-            &copy; 2025 BookingApp. All rights reserved.<br />
-            Contact: support@bookingapp.com
+            &copy; 2025 BookingApp. Bao lưu mọi quyền.<br />
+            Liên hệ: support@bookingapp.com
         </div>
     </div>
 </body>

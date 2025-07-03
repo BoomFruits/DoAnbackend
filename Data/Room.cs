@@ -15,7 +15,7 @@ namespace DoAn.Data
         public int Capacity { get; set; }
         [Required]
         [MaxLength(10)]
-        public string Type { get; set; } = string.Empty; // Single, Double, Triple, Quad
+        public string Type { get; set; } = string.Empty; // Single, Double, Suite
         [Range(0, double.MaxValue)]
         public double Price { get; set; } // Price per night
         public DateTime CreatedAt { get; set; } 

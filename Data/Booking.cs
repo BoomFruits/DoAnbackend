@@ -10,7 +10,7 @@ namespace DoAn.Data
         public Guid CustomerId { get; set; }
         public User Customer { get; set; } = null!;
         public DateTime BookingDate { get; set; }
-        public int status { get; set; } = 0; // 0: pending, 1: confirmed (paid), 2: canceled 3: done ( completed )
+        public int status { get; set; } = 0; // 0: pending ( chờ xác nhận ), 1: confirmed (đã xác nhận thanh toán), 2: canceled (huỷ) 3: done ( hoàn thành )
         [MaxLength(20)]
         public string? PaymentMethod { get; set; } = string.Empty;
         public DateTime? PaymentDate { get; set; }

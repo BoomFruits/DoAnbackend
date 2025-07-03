@@ -85,8 +85,7 @@ namespace DoAn.Data
                     ProductId = 3,
                     CustomerId = Guid.Parse("3421EF41-6B25-4AC1-AC32-C3669513B3B4"),
                     Amount = 2,
-                    Price = 160000,
-                    BuyDate = new DateTime(2025, 06, 01)
+                    Price = 160000
                 },
                 new ServiceDetail
                 {
@@ -95,8 +94,7 @@ namespace DoAn.Data
                     ProductId = 4,
                     CustomerId = Guid.Parse("3421EF41-6B25-4AC1-AC32-C3669513B3B4"),
                     Amount = 1,
-                    Price = 210000,
-                    BuyDate = new DateTime(2025, 06, 02)
+                    Price = 210000
                 }
             );
             // 8. Seed Rooms

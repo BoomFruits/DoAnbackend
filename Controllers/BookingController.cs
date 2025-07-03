@@ -16,109 +16,129 @@ namespace DoAn.Controllers
     {
         private readonly DbBookingContext _context;
         private readonly IEmailService _emailService;
+        private readonly IBookingService _bookingService;
 
-        public BookingController(DbBookingContext context, IEmailService emailService)
+        public BookingController(DbBookingContext context, IEmailService emailService, IBookingService bookingService)
         {
             _context = context;
             _emailService = emailService;
+            _bookingService = bookingService;
         }
 
+        //[HttpPost]
+        //public async Task<IActionResult> CreateBooking([FromBody] CreateBookingDTO dto)
+        //{
+        //    try
+        //    {
+        //        if (!ModelState.IsValid)
+        //        {
+        //            var errors = ModelState.Values
+        //                .SelectMany(v => v.Errors)
+        //                .Select(e => e.ErrorMessage)
+        //                .ToList();
+        //            return BadRequest(new { message = "Dữ liệu không hợp lệ", errors });
+        //        }
+        //        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        //        if(string.IsNullOrEmpty(userId))  return BadRequest(new { message = "User chưa xác thực" });
+        //        // Check room availability
+        //        foreach (var detail in dto.Details)
+        //        {
+        //            bool isConflict = await _context.BookingDetails
+        //                .Include(b => b.Booking)
+        //                .AnyAsync(d =>  
+        //                    d.RoomId == detail.RoomId &&
+        //                    d.Room.IsAvailable == true &&
+        //                    d.IsCheckedIn == false && d.IsCheckedOut == false &&
+        //                    detail.CheckinDate < d.CheckoutDate &&
+        //                    detail.CheckoutDate > d.CheckinDate
+        //                );
+
+        //            if (isConflict)
+        //            {
+        //                return BadRequest(new { message = $"Phòng {detail.room_No} is already booked during the selected time." });
+        //            }
+        //        }
+        //        var booking = new Booking
+        //        {
+        //            CustomerId = Guid.Parse(userId),
+        //            StaffId = null,
+        //            BookingDate = DateTime.Now,
+        //            Note = dto.Note ?? "",
+        //            PaymentMethod = dto.PaymentMethod,           
+        //            status = 0, // pending , payment status = 1 , done status = 2 , cancel = 3
+        //            TotalPrice = 0
+        //        };
+        //        double total = 0;
+        //        foreach (var detail in dto.Details)
+        //        {
+        //            total += detail.Price; 
+        //            booking.BookingDetails.Add(new BookingDetail
+        //            {
+        //                RoomId = detail.RoomId,            
+        //                CheckinDate = detail.CheckinDate,
+        //                CheckoutDate = detail.CheckoutDate,
+        //                RoomNote = detail.RoomNote ?? "",
+        //                Price = detail.Price
+        //            });
+        //            foreach(var service in detail.Services)
+        //            {
+        //                total += service.Quantity * service.Price;
+        //                var product = await _context.Products.FindAsync(service.ServiceId);
+        //                if (product == null || product.StockQuantity >= service.Quantity)
+        //                {
+        //                    product.StockQuantity -= service.Quantity;
+        //                }
+        //                else
+        //                {
+        //                    return BadRequest(new { message = $"Không đủ tồn kho cho dịch vụ {service.ServiceId}" });
+        //                }
+        //                booking.ServiceDetails.Add(new ServiceDetail
+        //                {
+        //                    RoomId = service.RoomId,
+        //                    ProductId = service.ServiceId,
+        //                    Amount = service.Quantity,
+        //                    Price = service.Price,
+        //                    CustomerId = Guid.Parse(userId),
+        //                });
+        //            }
+        //        }
+        //        booking.TotalPrice = (int)total;
+        //        var customer = await _context.Users.FindAsync(booking.CustomerId);
+        //        if (customer != null)
+        //        {
+        //            _context.Bookings.Add(booking);
+        //            await _context.SaveChangesAsync();
+        //            var fullBooking = await _context.Bookings.Include(b => b.BookingDetails)
+        //                .ThenInclude(d => d.Room)
+        //                .Include(b => b.ServiceDetails).ThenInclude(sd => sd.Product)
+        //                .FirstOrDefaultAsync(b => b.Id == booking.Id);
+        //            await _emailService.SendBookingConfirmationAsync(customer.Email, customer.Username, fullBooking);
+        //        }
+
+        //        return Ok(new { message = "Đặt phòng thành công",bookingId = booking.Id });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { message = "Lỗi", detail = ex.Message });
+        //    }
+        //}
         [HttpPost]
         public async Task<IActionResult> CreateBooking([FromBody] CreateBookingDTO dto)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                if (!ModelState.IsValid)
-                {
-                    var errors = ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage)
-                        .ToList();
-                    return BadRequest(new { message = "Invalid data", errors });
-                }
-                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                if(string.IsNullOrEmpty(userId))  return BadRequest(new { message = "User not authenticated" });
-                // Check room availability
-                foreach (var detail in dto.Details)
-                {
-                    bool isConflict = await _context.BookingDetails
-                        .Include(b => b.Booking)
-                        .AnyAsync(d =>
-                            d.RoomId == detail.RoomId &&
-                            d.Room.IsAvailable == true &&
-                            d.IsCheckedIn == false && d.IsCheckedOut == false &&
-                            detail.CheckinDate < d.CheckoutDate &&
-                            detail.CheckoutDate > d.CheckinDate
-                        );
-
-                    if (isConflict)
-                    {
-                        return BadRequest(new { message = $"Room ID {detail.RoomId} is already booked during the selected time." });
-                    }
-                }
-                var booking = new Booking
-                {
-                    CustomerId = Guid.Parse(userId),
-                    StaffId = null,
-                    BookingDate = DateTime.Now,
-                    Note = dto.Note ?? "",
-                    PaymentMethod = dto.PaymentMethod,
-                    status = 0, // pending , payment status = 1 , done status = 2 , cancel = 3
-                    TotalPrice = 0
-                };
-                double total = 0;
-                foreach (var detail in dto.Details)
-                {
-                    total += detail.Price; 
-                    booking.BookingDetails.Add(new BookingDetail
-                    {
-                        RoomId = detail.RoomId,
-                        CheckinDate = detail.CheckinDate,
-                        CheckoutDate = detail.CheckoutDate,
-                        RoomNote = detail.RoomNote ?? "",
-                        Price = detail.Price
-                    });
-                    foreach(var service in detail.Services)
-                    {
-                        total += service.Quantity * service.Price;
-                        var product = await _context.Products.FindAsync(service.ServiceId);
-                        if (product == null || product.StockQuantity >= service.Quantity)
-                        {
-                            product.StockQuantity -= service.Quantity;
-                        }
-                        else
-                        {
-                            return BadRequest(new { message = $"Không đủ tồn kho cho dịch vụ {service.ServiceId}" });
-                        }
-                        booking.ServiceDetails.Add(new ServiceDetail
-                        {
-                            RoomId = service.RoomId,
-                            ProductId = service.ServiceId,
-                            Amount = service.Quantity,
-                            Price = service.Price,
-                            CustomerId = Guid.Parse(userId),
-                        });
-                    }
-                }
-                booking.TotalPrice = (int)total;
-                var customer = await _context.Users.FindAsync(booking.CustomerId);
-                if (customer != null)
-                {
-                    _context.Bookings.Add(booking);
-                    await _context.SaveChangesAsync();
-                    var fullBooking = await _context.Bookings.Include(b => b.BookingDetails)
-                        .ThenInclude(d => d.Room)
-                        .Include(b => b.ServiceDetails).ThenInclude(sd => sd.Product)
-                        .FirstOrDefaultAsync(b => b.Id == booking.Id);
-                    await _emailService.SendBookingConfirmationAsync(customer.Email, customer.Username, fullBooking);
-                }
-
-                return Ok(new { message = "Booking created successfully",bookingId = booking.Id });
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return BadRequest(new { message = "Dữ liệu không hợp lệ", errors });
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = "Error msg", detail = ex.Message });
-            }
+            var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdStr, out var userId))
+                return BadRequest(new { message = "User chưa xác thực" });
+
+            var result = await _bookingService.CreateBookingAsync(dto, userId);
+            if (!result.Success)
+                return BadRequest(new { message = result.Message });
+
+            return Ok(new { message = result.Message, bookingId = result.bookingId });
         }
         [HttpGet("get_all")]
         [Authorize(Roles = "Admin")]
@@ -143,7 +163,7 @@ namespace DoAn.Controllers
            b.Note,
            CheckinDate = b.BookingDetails.Min(d => d.CheckinDate),
            CheckoutDate = b.BookingDetails.Max(d => d.CheckoutDate),
-           rooms = b.BookingDetails.Select(d => new
+           details = b.BookingDetails.Select(d => new
            {
                BookingId = b.Id,
                d.RoomId,
@@ -154,7 +174,14 @@ namespace DoAn.Controllers
                d.IsCheckedOut,
                d.Price,
                d.Room.Room_Name,
-               d.RoomNote
+               d.RoomNote,
+               Services = b.ServiceDetails
+                            .Where(s => s.RoomId == d.RoomId)
+                            .Select(sd => new {
+                                sd.Product.Title,
+                                sd.Amount,
+                                sd.Price
+                            })
            })
 
        })
@@ -168,7 +195,7 @@ namespace DoAn.Controllers
 
             if (!Guid.TryParse(userIdClaim, out var userId))
             {
-                return Unauthorized(new { message = "Invalid user ID" });
+                return Unauthorized(new { message = "Người dùng không hợp lệ" });
             }
 
             var bookings = await _context.Bookings
@@ -196,15 +223,15 @@ namespace DoAn.Controllers
                         d.IsCheckedOut,
                         d.Price,
                         d.RoomNote,
-                    }),
-                    Services = b.ServiceDetails.Select(sd => new
-                    {
-                        sd.Product.Title,
-                        sd.Amount,
-                        sd.Price,
-                        sd.BuyDate,
-                        sd.RoomId
-                    }) 
+
+                        Services = b.ServiceDetails
+                            .Where(s => s.RoomId == d.RoomId)
+                            .Select(sd => new {
+                                sd.Product.Title,
+                                sd.Amount,
+                                sd.Price
+                            })
+                    })
                 })
                 .ToListAsync();
 
@@ -242,12 +269,12 @@ namespace DoAn.Controllers
             var booking = await _context.Bookings.FindAsync(id);
             if (booking == null) return NotFound();
 
-            if (booking.status == 2) return BadRequest(new { message = "Already canceled." });
-            if (booking.status == 3) return BadRequest(new { message = "Already finished." });
+            if (booking.status == 2) return BadRequest(new { message = "Đã huỷ." });
+            if (booking.status == 3) return BadRequest(new { message = "Đã hoàn thành." });
 
             booking.status = 2; // 2 = Cancelled
             await _context.SaveChangesAsync();
-            return Ok(new { message = "Booking canceled." });
+            return Ok(new { message = "Huỷ đặt phòng." });
         }
         [HttpPost("checkin/{bookingId}/{roomId}")]
         [Authorize(Roles = "Admin")]
@@ -257,15 +284,15 @@ namespace DoAn.Controllers
                 .FirstOrDefaultAsync(d => d.BookingId == bookingId && d.RoomId == roomId);
 
             if (detail == null)
-                return NotFound("Booking detail not found");
+                return NotFound("Không tìm thấy chi tiết đặt phòng");
 
             if (detail.IsCheckedIn)
-                return BadRequest("Already checked in");
+                return BadRequest("Đã checked in");
 
             detail.IsCheckedIn = true;
             var booking = await _context.Bookings.FindAsync(bookingId);
             if (booking == null)
-                return NotFound("Booking not found");
+                return NotFound("Không tìm thấy đơn đặt phòng");
             else
             {//user payment
                 booking.status = 1;
@@ -274,7 +301,7 @@ namespace DoAn.Controllers
             }
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Checked in successfully" });
+            return Ok(new { message = "Checked in thành công" });
         }
         [HttpPost("checkout/{bookingId}/{roomId}")]
         [Authorize(Roles = "Admin")]
@@ -284,14 +311,14 @@ namespace DoAn.Controllers
                     .Include(b => b.BookingDetails)
                     .FirstOrDefaultAsync(b => b.Id == bookingId);
             if(booking == null)
-                return NotFound("Booking not found");
+                return NotFound("Không tìm thấy đơn đặt phòng");
             var detail = booking.BookingDetails.FirstOrDefault(d => d.RoomId == roomId);
             if (detail == null)
-                return NotFound("Room not found in booking");
+                return NotFound("Phòng không hợp lệ");
             if (!detail.IsCheckedIn)
-                return BadRequest("Check-in required before check-out");
+                return BadRequest("Yêu cầu check-in trước khi check-out");
             if (detail.IsCheckedOut)
-                return BadRequest("Already checked out");
+                return BadRequest("Đã checked out");
             detail.IsCheckedOut = true;
             await _context.SaveChangesAsync();
             if(booking.BookingDetails.All(d => d.IsCheckedOut))
@@ -299,17 +326,17 @@ namespace DoAn.Controllers
                 booking.status = 3; // Set booking status to 'finished'
                 await _context.SaveChangesAsync();
             }
-            return Ok(new { message = "Checked out successfully" });
+            return Ok(new { message = "Checked out thành công" });
         }
         [HttpDelete("delete/{bookingId}")]
         public async Task<IActionResult> DeleteBooking(int bookingId)
         {
             var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId);
             if (booking == null)
-                return NotFound("Booking not found");
+                return NotFound("không tìm thấy đơn đặt phòng");
             _context.Bookings.Remove(booking);
             await _context.SaveChangesAsync();
-            return Ok(new { message = "Deleted booking successfully" });
+            return Ok(new { message = "Xoá đơn đặt phòng thành công" });
         }
     }
 }

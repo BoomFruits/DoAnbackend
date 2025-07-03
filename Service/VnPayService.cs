@@ -52,26 +52,17 @@ namespace DoAn.Service
             var vnp_SecureHash = collection.FirstOrDefault(p => p.Key == "vnp_SecureHash").Value;
             var vnp_OrderInfo = vnpay.GetResponseData("vnp_OrderInfo");
             bool checkSignature = vnpay.ValidateSignature(vnp_SecureHash, _config["VnPay:HashSecret"]);
-            if (!checkSignature)
+            bool isSuccess = checkSignature && vnp_ResponseCode == "00";
+            return new VnPaymentResponseModel
             {
-                return new VnPaymentResponseModel
-                {
-                    Success = false
-                };
-            }
-            else
-            {
-                return new VnPaymentResponseModel
-                {
-                    OrderId = vnp_orderId,
-                    Success = true,
-                    PaymentMethod = "VnPay",
-                    OrderDescription = vnp_orderId.ToString(),
-                    TransactionId = vnp_TranId.ToString(),
-                    Token = vnp_SecureHash,
-                    VnPayResponseCode = vnp_ResponseCode.ToString(),
-                };
-            }
+                OrderId = vnp_orderId,
+                Success = isSuccess,
+                PaymentMethod = "VnPay",
+                OrderDescription = vnp_orderId.ToString(),
+                TransactionId = vnp_TranId.ToString(),
+                Token = vnp_SecureHash,
+                VnPayResponseCode = vnp_ResponseCode
+            };
         }
     }
 }

@@ -37,11 +37,11 @@ namespace DoAn.Service
                 .Replace("{{PaymentMethod}}", booking.PaymentMethod)
                 .Replace("{{Status}}", booking.status.ToString())
                 .Replace("{{Note}}", booking.Note)
-                .Replace("{{BookingLink}}", $"https://yourapp.com/booking/{booking.Id}")
+                .Replace("{{BookingLink}}", $"http://localhost:4200/#/my-bookings")
                 .Replace("{{#each BookingDetails}}", "")
                 .Replace("{{/each}}", "")
                 .Replace("{{GrandTotal}}", booking.BookingDetails.Sum(x => x.Price * (x.CheckoutDate - x.CheckinDate).Days).ToString("0.00"))
-                .Replace("{{RoomName}}", "") // remove unused placeholders
+                .Replace("{{RoomName}}", "") 
                 .Replace("{{CheckinDate}}", "")
                 .Replace("{{CheckoutDate}}", "")
                 .Replace("{{Price}}", "")

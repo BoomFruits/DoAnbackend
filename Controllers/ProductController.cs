@@ -39,7 +39,7 @@ namespace DoAn.Controllers
             var updatedProduct = await productService.UpdateAsync(dto);
             if (updatedProduct == null)
             {
-                return NotFound($"Product with ID {dto.Id} not found.");
+                return NotFound($"Không có mã sản phẩm {dto.Id} tìm thấy.");
             }
             return Ok(updatedProduct);
         }
@@ -49,7 +49,7 @@ namespace DoAn.Controllers
             var products = await productService.GetByCategory(categoryId);
             if (products == null || !products.Any())
             {
-                return NotFound($"No products found for category ID {categoryId}");
+                return NotFound($"Không có sản phẩm có mã danh mục {categoryId}");
             }
             return Ok(products);
         }
@@ -65,9 +65,9 @@ namespace DoAn.Controllers
             var deleted = await productService.DeleteAsync(id);
             if (!deleted)
             {
-                return NotFound($"Product with ID {id} not found.");
+                return NotFound($"Sản phẩm có mã {id} khồng tìm thấy.");
             }
-            return Ok(new { message = "Product deleted successfully." });
+            return Ok(new { message = "Xoá sản phẩm thành công." });
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using DoAn.Data;
 using DoAn.DTO;
+using DoAn.Helpers;
 using DoAn.Service;
 using Google;
 using Microsoft.AspNetCore.Authorization;
@@ -33,7 +34,7 @@ namespace DoAn.Controllers
             try
             {
                 var paymentUrl = _vnPayService.CreatePaymentUrl(HttpContext, model);
-                return Ok(paymentUrl);
+                return Ok(new {paymentUrl});
             }
             catch (Exception ex)
             {
@@ -67,15 +68,14 @@ namespace DoAn.Controllers
         public async Task<IActionResult> VnPayReturn()
         {
             var response = _vnPayService.PaymentExecute(Request.Query);
-            if (!response.Success)
-                return Ok(new { success = false });
             if (!long.TryParse(response.OrderId.ToString(), out long bookingId))
                 return BadRequest(new { success = false, message = "Invalid booking ID" });
-            // Update trạng thái thanh toán
             var booking = _context.Bookings.FirstOrDefault(b => b.Id == bookingId);
             if (booking == null)
                 return NotFound();
-
+            if (!response.Success)
+                return Redirect($"http://localhost:4200/#/payment-failed?bookingId={bookingId}&method=VNPay");
+            // Update trạng thái thanh toán
             booking.IsPaid = true;
             booking.status = 1;
             booking.PaymentMethod = "VNPay";
@@ -83,8 +83,6 @@ namespace DoAn.Controllers
             await _context.SaveChangesAsync();
 
             return Redirect($"http://localhost:4200/#/payment-success?bookingId={bookingId}&method=VNPay");
-
-
         }
 
         // ✅ Handle return from PayPal
@@ -99,11 +97,11 @@ namespace DoAn.Controllers
                 // Lấy bookingId từ invoice_number
                 var invoice = payment.transactions.FirstOrDefault()?.invoice_number;
                 if (!long.TryParse(invoice, out long bookingId))
-                    return BadRequest("Invalid booking ID");
+                    return BadRequest("Mã đơn đặt phòng không hợp lệ");
 
                 var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId);
                 if (booking == null)
-                    return NotFound("Booking not found");
+                    return NotFound("Mã đơn đặt phòng không tìm thấy");
 
                 booking.IsPaid = true;
                 booking.status = 1;
@@ -115,7 +113,8 @@ namespace DoAn.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest($"Payment execution failed: {ex.Message}");
+                var invoice = Request.Query["invoice"].ToString();
+                return Redirect($"http://localhost:4200/#/payment-failed?bookingId={invoice}&method=PayPal");
             }
         }
     }

@@ -70,7 +70,7 @@ namespace DoAn.Controllers
                     using var http = new HttpClient();
                     var response = await http.GetAsync(url);
                     if (!response.IsSuccessStatusCode)
-                        return Unauthorized("Invalid Facebook token");
+                        return Unauthorized("Mã token Facebook không hợp lệ");
 
                     var content = await response.Content.ReadAsStringAsync();
                     var fbUser = JsonSerializer.Deserialize<FacebookUserInfo>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
@@ -92,16 +92,16 @@ namespace DoAn.Controllers
                         await _userService.CreateUserAsync(userDb);
                     }
                 }
-                else return BadRequest("Unsupported provider");
+                else return BadRequest("Nhà cung cấp không hợp lệ");
             }
             else
             {
                 userDb = await _userService.GetUserByEmail(dto.Email);
                 if(userDb == null)
-                    return Unauthorized("Invalid login information");
+                    return Unauthorized("Thông tin đăng nhập không hợp lệ");
                 var result = _passwordHasher.VerifyHashedPassword(userDb, userDb.Password, dto.Password);
                 if (result == PasswordVerificationResult.Failed)
-                    return Unauthorized("Invalid login information");
+                    return Unauthorized("Thông tin đăng nhập không hợp lệ");
             }
             // Tạo claims
             var claims = new[]
@@ -149,7 +149,7 @@ namespace DoAn.Controllers
 
             await _userService.CreateUserAsync(user);
             await _emailService.SendEmailAsync(dto.Email, "Đăng ký tài khoản thành công",user.Username);
-            return Ok(new { message = "User registered successfully!" });
+            return Ok(new { message = "Đăng ký tài khoản thành công!" });
         }
         [HttpGet("check_email")]
         public async Task<IActionResult> CheckEmailExists(string email)

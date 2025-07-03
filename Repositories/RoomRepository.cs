@@ -119,7 +119,8 @@ namespace DoAn.Repositories
                 room.Images.Add(new RoomImage
                 {
                     ImageUrl = $"/uploads/rooms/{fileName}",
-                    RoomId = roomId
+                    RoomId = roomId,
+                    Room = room
                 });
             }  
             await _context.SaveChangesAsync();

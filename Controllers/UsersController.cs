@@ -79,9 +79,9 @@ namespace DoAn.Controllers
         {
             var result = await _userService.ResetPasswordAsync(dto.Email);
             if (!result)
-                return NotFound("Email not found");
+                return NotFound("Email không tồn tại");
 
-            return Ok(new {message = "New password have been sent to your email"});
+            return Ok(new {message = "Mật khẩu mới đã được gửi tới email của bạn"});
         }
     }
 }

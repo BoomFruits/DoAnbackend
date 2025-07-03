@@ -42,7 +42,7 @@ namespace DoAn.Controllers
         public async Task<IActionResult> Create([FromForm] RoomCreateDTO room)
         {
             await roomService.CreateRoom(room);
-            return Ok(new { message = "Room created successfully" });
+            return Ok(new { message = "Tạo phòng thành công" });
         }
 
         [HttpPut("{id}")]
@@ -52,7 +52,7 @@ namespace DoAn.Controllers
             var result = await roomService.UpdateRoom(id, roomDTO);
 
             if (!result)
-                return BadRequest(new { message = "Something went wrong" });
+                return BadRequest(new { message = "Lỗi" });
             return Ok();
         }
         [Authorize(Roles = "Admin")]
