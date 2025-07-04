@@ -28,6 +28,12 @@ namespace DoAn.Controllers
             var rooms = await roomService.GetAvailbleRoom();
             return Ok(rooms);
         }
+        [HttpGet("get_top_rooms")]
+        public async Task<IActionResult> GetTopRoom()
+        {
+            var rooms = await roomService.GetTopRoom();
+            return Ok(rooms);
+        }
         [HttpGet("{id}")]
         public async Task<IActionResult> GetRoomById(int id)
         {

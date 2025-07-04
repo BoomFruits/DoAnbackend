@@ -63,6 +63,31 @@ namespace DoAn.Repositories
             return _context.Rooms.Include(r => r.Images).FirstOrDefaultAsync(r => r.Id == id);
         }
 
+        public async Task<List<RoomResponseDTO>> GetTopRoom()
+        {
+            var topRooms = await _context.BookingDetails
+                .GroupBy(d => d.RoomId)
+                .OrderByDescending(g => g.Count())
+                .Take(3)
+                .Select(g => new RoomResponseDTO
+                {
+                    Id = g.First().Room.Id,
+                    Room_No = g.First().Room.Room_No, 
+                    Room_Name = g.First().Room.Room_Name,
+                    Capacity = g.First().Room.Capacity,
+                    Type = g.First().Room.Type,
+                    Price = g.First().Room.Price,
+                    IsAvailable = g.First().Room.IsAvailable,
+                    Bed = g.First().Room.Bed,
+                    Bath = g.First().Room.Bath,
+                    Area = g.First().Room.Area,
+                    Description = g.First().Room.description,
+                    Images = g.First().Room.Images.Select(i => i.ImageUrl).ToList()
+                })
+                .ToListAsync();
+            return topRooms;
+        }
+
         public async Task SaveChangeAsync()
         {
             await _context.SaveChangesAsync();

@@ -6,6 +6,7 @@ namespace DoAn.Repositories
     public interface IRoomRepository
     {
         Task<List<RoomResponseDTO>> GetAllRoom();
+        Task<List<RoomResponseDTO>> GetTopRoom();
         Task<Room?> GetRoomById(int id);
         Task AddRoom(Room room);
         Task<bool> UpdateRoom(int id,Room room);

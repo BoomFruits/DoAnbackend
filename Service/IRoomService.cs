@@ -7,6 +7,7 @@ namespace DoAn.Service
     {
         Task<List<RoomResponseDTO>> GetAllRooms();
         Task<RoomResponseDTO> GetRoomById(int id);
+        Task<List<RoomResponseDTO>> GetTopRoom();
         Task CreateRoom(RoomCreateDTO room);
         Task<bool> UpdateRoom(int id, RoomUpdateDTO room);
         Task<bool> DeleteRoom(int id);

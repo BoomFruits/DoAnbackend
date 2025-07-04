@@ -2,6 +2,7 @@
 using DoAn.Data;
 using DoAn.DTO;
 using DoAn.Repositories;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 namespace DoAn.Service
 {
@@ -11,6 +12,7 @@ namespace DoAn.Service
             private readonly IRoomRepository _roomRepository;
         private readonly IMapper _mapper;
         private readonly IWebHostEnvironment _env;
+        private readonly DbBookingContext _context;
             public RoomService(IRoomImageRepository roomImageRepository,IRoomRepository roomRepository,IWebHostEnvironment env,IMapper mapper)
                 {
                     _roomRepository = roomRepository;
@@ -99,7 +101,13 @@ namespace DoAn.Service
                 return result;
         }
 
-            public async Task<bool> UpdateRoom(int id, RoomUpdateDTO dto)
+        public async Task<List<RoomResponseDTO>> GetTopRoom()
+        {
+           var topRooms = await _roomRepository.GetTopRoom();
+            return topRooms;
+        }
+
+        public async Task<bool> UpdateRoom(int id, RoomUpdateDTO dto)
             {
                 var room = await _roomRepository.GetRoomById(id);
                     if (room == null) 
