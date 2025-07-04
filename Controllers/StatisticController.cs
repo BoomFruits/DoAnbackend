@@ -28,7 +28,7 @@ namespace DoAn.Controllers
         [HttpGet]
         public async Task<IActionResult> GetStatistics(string mode = "today", DateTime? from = null, DateTime? to = null)
         {
-            var today = DateTime.Today;
+            DateTime today = DateTime.Today;
             var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
 
             // Lọc booking theo mode
@@ -57,11 +57,13 @@ namespace DoAn.Controllers
             var canceledCount = await filteredBookings.CountAsync(b => b.status == 2);
 
             // Các thống kê theo ngày và tháng (không phụ thuộc chế độ lọc)
-            var todayBookings = await _context.Bookings.CountAsync(b => b.BookingDate.Date == today);
+            var todayBookings = await _context.Bookings.Where(b => b.BookingDate == today).CountAsync();
             var monthBookings = await _context.Bookings.CountAsync(b => b.BookingDate >= firstDayOfMonth);
 
-            var todayCheckins = await _context.BookingDetails.CountAsync(d => d.IsCheckedIn && d.CheckinDate <= today);
-            var todayCheckouts = await _context.BookingDetails.CountAsync(d => d.IsCheckedOut && d.CheckoutDate >= today);
+            var todayCheckins = await _context.Bookings.Where(b => b.BookingDetails.Any(d => d.IsCheckedIn && d.CheckinDate.Date == today.Date)).CountAsync();
+            var monthCheckins = await _context.BookingDetails.CountAsync(d => d.IsCheckedIn && d.CheckinDate >= firstDayOfMonth);
+            var todayCheckouts = await _context.Bookings.Where(b => b.BookingDetails.Any(d => d.IsCheckedOut && d.CheckoutDate.Date == today.Date)).CountAsync();
+            var monthCheckouts = await _context.BookingDetails.CountAsync(d => d.IsCheckedOut && d.CheckoutDate >= firstDayOfMonth);
 
             var userCount = await _context.Users.CountAsync();
             var activeRooms = await _context.Rooms.CountAsync(r => r.IsAvailable);
@@ -120,7 +122,9 @@ namespace DoAn.Controllers
                 canceledCount,
                 todayBookings,
                 todayCheckins,
+                monthCheckins,
                 todayCheckouts,
+                monthCheckouts,
                 monthBookings,
                 userCount,
                 activeRooms,

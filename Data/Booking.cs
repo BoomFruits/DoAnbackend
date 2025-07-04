@@ -5,7 +5,7 @@ namespace DoAn.Data
     public class Booking
     {
         public int Id { get; set; }
-        public Guid? StaffId { get; set; }
+        public Guid? StaffId { get; set; } //Admin checkin
         public User Staff { get; set; } = null!;
         public Guid CustomerId { get; set; }
         public User Customer { get; set; } = null!;

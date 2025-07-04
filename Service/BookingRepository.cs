@@ -24,7 +24,22 @@ namespace DoAn.Service
                 .ThenInclude(s => s.Product)
                 .FirstOrDefaultAsync(b => b.Id == bookingId);
         }
+        public async Task<List<Booking>> GetBookingsByCustomerIdAsync(Guid customerId)
+        {
+            return await _context.Bookings
+                .Include(b => b.BookingDetails)
+                    .ThenInclude(d => d.Room)
+                .Include(b => b.ServiceDetails)
+                    .ThenInclude(s => s.Product)
+                .Where(b => b.CustomerId == customerId)
+                .OrderByDescending(b => b.BookingDate)
+                .ToListAsync();
+        }
+        public Task<Booking?> GetBookingAsync(int bookingId)
+              =>  _context.Bookings.FindAsync(bookingId).AsTask();
 
+        public Task<BookingDetail?> GetBookingDetailAsync(int bookingId, int roomId)
+            => _context.BookingDetails.FirstOrDefaultAsync(d => d.BookingId == bookingId && d.RoomId == roomId);
         public async Task<Product?> GetProductAsync(int id)
         {
             return await _context.Products.FindAsync(id);
@@ -48,6 +63,19 @@ namespace DoAn.Service
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> DeleteBookingAsync(int bookingId)
+        {
+            var booking = await _context.Bookings.FindAsync(bookingId);
+            if(booking == null)
+            {
+                return false; 
+            }
+            await _context.Bookings
+                .Where(b => b.Id == bookingId)
+                .ExecuteDeleteAsync();
+            return true;
         }
     }
 }

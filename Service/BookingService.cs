@@ -47,18 +47,18 @@ namespace DoAn.Service
 
                 foreach (var service in detail.Services)
                 {
-                    var product = await _bookingRepo.GetProductAsync(service.ServiceId);
-                    if (product == null || product.StockQuantity < service.Quantity)
-                        return (false, $"Không đủ tồn kho cho dịch vụ Id = {service.ServiceId}", null);
+                    var product = await _bookingRepo.GetProductAsync(service.serviceId);
+                    if (product == null || product.StockQuantity < service.Amount)
+                        return (false, $"Không đủ tồn kho cho dịch vụ Id = {service.serviceId}", null);
 
-                    product.StockQuantity -= service.Quantity;
-                    total += service.Quantity * service.Price;
+                    product.StockQuantity -= service.Amount;
+                    total += service.Amount * service.Price;
 
                     booking.ServiceDetails.Add(new ServiceDetail
                     {
-                        RoomId = service.RoomId,
-                        ProductId = service.ServiceId,
-                        Amount = service.Quantity,
+                        RoomId = detail.RoomId,
+                        ProductId = service.serviceId,
+                        Amount = service.Amount,
                         Price = service.Price,
                         CustomerId = userId
                     });
@@ -78,5 +78,122 @@ namespace DoAn.Service
 
             return (true, "Đặt phòng thành công", booking.Id);
         }
+
+        async Task<(bool Success, string Message)> IBookingService.CheckInAsync(int bookingId, int roomId, Guid staffId)
+        {
+            var detail = await _bookingRepo.GetBookingDetailAsync(bookingId, roomId);
+            if (detail == null)
+                return (false, "Không tìm thấy chi tiết đặt phòng");
+
+            if (detail.IsCheckedIn)
+                return (false, "Đã checked in");
+
+            detail.IsCheckedIn = true;
+
+            var booking = await _bookingRepo.GetBookingAsync(bookingId);
+            if (booking == null)
+                return (false, "Không tìm thấy đơn đặt phòng");
+
+            booking.StaffId = staffId;
+            booking.status = 1;
+            booking.IsPaid = true;
+            booking.PaymentDate = DateTime.Now;
+
+            await _bookingRepo.SaveChangesAsync();
+
+            return (true, "Checked in thành công");
+        }
+        public async Task<(bool Success, string Message)> CheckOutAsync(int bookingId, int roomId)
+        {
+            var booking = await _bookingRepo.GetBookingAsync(bookingId);
+            if (booking == null)
+                return (false, "Không tìm thấy đơn đặt phòng");
+
+            var detail = await _bookingRepo.GetBookingDetailAsync(bookingId, roomId);
+            if (detail == null)
+                return (false, "Phòng không hợp lệ");
+
+            if (!detail.IsCheckedIn)
+                return (false, "Yêu cầu check-in trước khi check-out");
+
+            if (detail.IsCheckedOut)
+                return (true, "Phòng đã được check-out");
+
+            detail.IsCheckedOut = true;
+
+
+            if (booking.BookingDetails.All(d => d.IsCheckedOut))
+            {
+                booking.status = 3; // 3 = hoàn tất
+            }
+
+            await _bookingRepo.SaveChangesAsync();
+
+            return (true, "Checked out thành công");
+        }
+
+        public async Task<(bool success, string messsage)> CancelBookingAsync(int bookingId)
+        {
+            var booking = await _bookingRepo.GetBookingAsync(bookingId);
+            if (booking == null) return (false,"Không tìm thấy đơn đặt phòng");
+
+            if (booking.status == 2) return (false,"Đã huỷ");
+            if (booking.status == 3) return (false,"Đã hoàn thành");
+
+            booking.status = 2; // 2 = Cancelled
+            await _bookingRepo.SaveChangesAsync();
+            return (true, "Huỷ đặt phòng thành công");
+        }
+       public async Task<(bool Success, string Message)> DeleteBookingAsync(int bookingId)
+        {
+            var booking = await _bookingRepo.GetBookingAsync(bookingId); 
+            if (booking == null) return (false, "Không tìm thấy đơn đặt phòng");
+
+            if (await _bookingRepo.DeleteBookingAsync(bookingId))
+            {
+                await _bookingRepo.SaveChangesAsync();
+                return (true, "Xoá đơn đặt phòng thành công");
+            }
+            else
+            {
+                return (false, "Không thể xoá đơn đặt phòng");
+            }
+        }
+        public async Task<List<BookingDTO>> GetMyBookingsAsync(Guid customerId)
+        {
+            var bookings = await _bookingRepo.GetBookingsByCustomerIdAsync(customerId);
+
+            return bookings.Select(b => new BookingDTO
+            {
+                Id = b.Id,
+                BookingDate = b.BookingDate,
+                PaymentMethod = b.PaymentMethod,
+                Note = b.Note,
+                IsPaid = b.IsPaid,
+                PaymentDate = b.PaymentDate,
+                TotalPrice = b.TotalPrice,
+                Status = b.status,
+                Details = b.BookingDetails.Select(d => new BookingDetailDTO
+                {
+                    RoomId = d.RoomId,
+                    Room_No = d.Room.Room_No,
+                    CheckinDate = d.CheckinDate,
+                    CheckoutDate = d.CheckoutDate,
+                    Price = d.Price,
+                    IsCheckedIn = d.IsCheckedIn,
+                    IsCheckedOut = d.IsCheckedOut,
+                    RoomNote = d.RoomNote,
+                    Services = b.ServiceDetails
+                        .Where(s => s.RoomId == d.RoomId)
+                        .Select(s => new ServiceDTO
+                        {
+                            Title = s.Product.Title,
+                            Amount = s.Amount,
+                            Price = s.Price
+                        }).ToList()
+                }).ToList()
+            }).ToList();
+        }
     }
+
 }

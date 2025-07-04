@@ -18,7 +18,6 @@ namespace DoAn.Data
         public double Price { get; set; }
         [NotMapped]
         public int Unit => (CheckoutDate - CheckinDate).Days; // Tự động tính dựa trên ngày checkin và checkout
-        public ICollection<ServiceDetail> ServiceDetails { get; set; } = new List<ServiceDetail>(); // 1 chi tiết đặt phòng có thể sử dụng các dịch vụ
-
+      
     }
 }

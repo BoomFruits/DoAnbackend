@@ -41,7 +41,7 @@ namespace DoAn.Data
                 .HasOne(u => u.Role)
                 .WithMany(r => r.Users)
                 .HasForeignKey(u => u.RoleId)
-                .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete to avoid deleting users when roles are deleted
+                .OnDelete(DeleteBehavior.Restrict); 
 
             // BookingDetail: composite key
             modelBuilder.Entity<BookingDetail>()
@@ -73,7 +73,7 @@ namespace DoAn.Data
 
             modelBuilder.Entity<ServiceDetail>()
                 .HasOne(sd => sd.BookingDetail)
-                .WithMany(bd => bd.ServiceDetails)
+                .WithMany()
                 .HasForeignKey(s => new {s.BookingId,s.RoomId})
                 .OnDelete(DeleteBehavior.Cascade);
                 

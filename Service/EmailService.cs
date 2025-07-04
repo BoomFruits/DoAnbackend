@@ -19,15 +19,22 @@ namespace DoAn.Service
             string rows = "";
             foreach (var detail in booking.BookingDetails)
             {
-                var total = detail.Price * (detail.CheckoutDate - detail.CheckinDate).Days;
-                     rows += $@"
+                var days = (detail.CheckoutDate - detail.CheckinDate).Days;
+                var roomTotal = detail.Price * days;
+                var serviceTotal = booking.ServiceDetails
+                    .Where(s => s.RoomId == detail.RoomId)
+                    .Sum(s => s.Price * s.Amount);
+                var total = roomTotal + serviceTotal;
+                rows += $@"
                     <tr>
-                        <td>{detail.Room?.Room_No ?? "N/A"}</td>
+                        <td>{detail.Room.Room_No}</td>
                         <td>{detail.CheckinDate:yyyy-MM-dd}</td>
                         <td>{detail.CheckoutDate:yyyy-MM-dd}</td>
-                        <td>${detail.Price}</td>
-                        <td>{(detail.CheckoutDate - detail.CheckinDate).Days}</td>
-                        <td>${total}</td>
+                        <td>{detail.Price} VNĐ</td>
+                        <td>{days}</td>
+                        <td>{roomTotal} VNĐ</td>
+                        <td>{serviceTotal} VNĐ</td>
+                        <td><strong>{total} VNĐ</strong></td>
                     </tr>";
             }
             string htmlBody = File.ReadAllText("Templates/BookingConfirmation.html")
@@ -38,9 +45,7 @@ namespace DoAn.Service
                 .Replace("{{Status}}", booking.status.ToString())
                 .Replace("{{Note}}", booking.Note)
                 .Replace("{{BookingLink}}", $"http://localhost:4200/#/my-bookings")
-                .Replace("{{#each BookingDetails}}", "")
-                .Replace("{{/each}}", "")
-                .Replace("{{GrandTotal}}", booking.BookingDetails.Sum(x => x.Price * (x.CheckoutDate - x.CheckinDate).Days).ToString("0.00"))
+                .Replace("{{GrandTotal}}",  booking.TotalPrice.ToString("0.00"))
                 .Replace("{{RoomName}}", "") 
                 .Replace("{{CheckinDate}}", "")
                 .Replace("{{CheckoutDate}}", "")

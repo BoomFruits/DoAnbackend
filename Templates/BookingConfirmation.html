@@ -95,34 +95,27 @@
             <table class="details-table">
                 <thead>
                     <tr>
-                        <th>Phòng</th>
-                        <th>Check-in</th>
-                        <th>Check-out</th>
-                        <th>Giá/Ngày đêm</th>
-                        <th>Tổn số ngày lưu trú</th>
-                        <th>Tổng</th>
+                        <th >Phòng</th>
+                        <th >Check-in</th>
+                        <th >Check-out</th>
+                        <th >Giá/Ngày đêm</th>
+                        <th >Tổng số ngày lưu trú</th>
+                        <th >Tiền phòng</th>
+                        <th >Tiền dịch vụ</th>
+                        <th >Tổng</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {{#each BookingDetails}}
-                    <tr>
-                        <td>{{RoomName}}</td>
-                        <td>{{CheckinDate}}</td>
-                        <td>{{CheckoutDate}}</td>
-                        <td>${{Price}}</td>
-                        <td>{{Unit}}</td>
-                        <td>{{Total}}</td>
-                    </tr>
-                    {{/each}}
+
                 </tbody>
             </table>
 
-            <p style="margin-top: 20px;"><strong>Tổng tiền:</strong> <span style="font-size: 18px; color: #007BFF;">{{GrandTotal}}</span></p>
+            <p style="margin-top: 20px;"><strong>Tổng tiền:</strong> <span style="font-size: 18px; color: #007BFF;">{{GrandTotal}} VNĐ</span></p>
 
             <a href="{{BookingLink}}" class="btn">Xem chi tiết dặt phòng</a>
         </div>
         <div class="footer">
-            &copy; 2025 BookingApp. Bao lưu mọi quyền.<br />
+            &copy; 2025 BookingApp. Bảo lưu mọi quyền.<br />
             Liên hệ: support@bookingapp.com
         </div>
     </div>
