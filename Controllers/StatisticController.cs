@@ -46,13 +46,14 @@ namespace DoAn.Controllers
             {
                 filteredBookings = filteredBookings.Where(b => b.BookingDate.Date >= from.Value.Date && b.BookingDate.Date <= to.Value.Date);
             }
-
             // Dữ liệu tổng quan
             var totalBookings = await filteredBookings.CountAsync();
             var totalRevenue = await filteredBookings
                 .Where(b => b.IsPaid)
                 .SumAsync(b => (decimal?)b.TotalPrice) ?? 0;
-
+            var todayRevenue = await _context.Bookings
+                .Where(b => b.BookingDate.Date == today && b.IsPaid)
+                .SumAsync(b => (decimal?)b.TotalPrice) ?? 0;
             var successCount = await filteredBookings.CountAsync(b => b.status != 2); // status != canceled
             var canceledCount = await filteredBookings.CountAsync(b => b.status == 2);
 
@@ -118,6 +119,7 @@ namespace DoAn.Controllers
             {
                 totalBookings,
                 totalRevenue,
+                todayRevenue,
                 successCount,
                 canceledCount,
                 todayBookings,

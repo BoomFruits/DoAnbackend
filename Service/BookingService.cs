@@ -106,19 +106,20 @@ namespace DoAn.Service
 
         async Task<(bool Success, string Message)> IBookingService.CheckInAsync(int bookingId, int roomId, Guid staffId)
         {
-            var detail = await _bookingRepo.GetBookingDetailAsync(bookingId, roomId);
-            if (detail == null)
-                return (false, "Không tìm thấy chi tiết đặt phòng");
-
-            if (detail.IsCheckedIn)
-                return (false, "Đã checked in");
-
-            detail.IsCheckedIn = true;
 
             var booking = await _bookingRepo.GetBookingAsync(bookingId);
             if (booking == null)
                 return (false, "Không tìm thấy đơn đặt phòng");
 
+            var detail = await _bookingRepo.GetBookingDetailAsync(bookingId, roomId);
+            if (detail == null)
+                return (false, "Không tìm thấy chi tiết đặt phòng");
+            if(detail.CheckinDate.Date > DateTime.Now.Date)
+                return (false, "Chưa đến ngày check-in");
+            if (detail.IsCheckedIn)
+                return (false, "Đã checked in");
+
+            detail.IsCheckedIn = true;
             booking.StaffId = staffId;
             booking.status = 1;
             booking.IsPaid = true;
@@ -133,7 +134,8 @@ namespace DoAn.Service
             var booking = await _bookingRepo.GetBookingAsync(bookingId);
             if (booking == null)
                 return (false, "Không tìm thấy đơn đặt phòng");
-
+            if(booking.status == 2)
+                return (false, "Đơn đặt phòng đã bị huỷ");
             var detail = await _bookingRepo.GetBookingDetailAsync(bookingId, roomId);
             if (detail == null)
                 return (false, "Phòng không hợp lệ");

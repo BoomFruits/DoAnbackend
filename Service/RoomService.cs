@@ -8,15 +8,13 @@ namespace DoAn.Service
 {
         public class RoomService : IRoomService
         {
-            private readonly IRoomImageRepository _roomImageRepository;
             private readonly IRoomRepository _roomRepository;
         private readonly IMapper _mapper;
         private readonly IWebHostEnvironment _env;
         private readonly DbBookingContext _context;
-            public RoomService(IRoomImageRepository roomImageRepository,IRoomRepository roomRepository,IWebHostEnvironment env,IMapper mapper)
+            public RoomService(IRoomRepository roomRepository,IWebHostEnvironment env,IMapper mapper)
                 {
                     _roomRepository = roomRepository;
-                    _roomImageRepository = roomImageRepository;
                     _env = env;
                     _mapper = mapper;   
                 }
