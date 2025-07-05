@@ -15,9 +15,16 @@ namespace DoAn.Data
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<RoomImage> RoomImages { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            //notif
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
             //user - customerbookings
             modelBuilder.Entity<Booking>()
                 .HasOne(b => b.Customer)
@@ -70,13 +77,6 @@ namespace DoAn.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Service
-
-            modelBuilder.Entity<ServiceDetail>()
-                .HasOne(sd => sd.BookingDetail)
-                .WithMany()
-                .HasForeignKey(s => new {s.BookingId,s.RoomId})
-                .OnDelete(DeleteBehavior.Cascade);
-                
             modelBuilder.Entity<ServiceDetail>()
                 .HasOne(sd => sd.Customer)
                 .WithMany()

@@ -45,49 +45,49 @@ namespace DoAn.Controllers
         [HttpGet("get_all")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllBooking()
-        {
+         {
             var bookings = await _context.Bookings
-       .Include(b => b.Customer)
-       .Include(b => b.BookingDetails)
-           .ThenInclude(d => d.Room)
-       .Select(b => new
-       {
-           b.Id,
-           UserEmail = b.Customer.Email,
-           UserName = b.Customer.Username,
-           b.TotalPrice,
-           b.status,
-           b.PaymentDate,
-           b.IsPaid,
-           StaffName = b.Staff != null ? b.Staff.Username : null,
-           bookingDate = b.BookingDate,
-           b.PaymentMethod,
-           b.Note,
-           CheckinDate = b.BookingDetails.Min(d => d.CheckinDate),
-           CheckoutDate = b.BookingDetails.Max(d => d.CheckoutDate),
-           details = b.BookingDetails.Select(d => new
-           {
-               BookingId = b.Id,
-               d.RoomId,
-               d.Room.Room_No,
-               d.CheckinDate,
-               d.IsCheckedIn,
-               d.CheckoutDate,
-               d.IsCheckedOut,
-               d.Price,
-               d.Room.Room_Name,
-               d.RoomNote,
-               Services = b.ServiceDetails
-                            .Where(s => s.RoomId == d.RoomId)
-                            .Select(sd => new {
-                                sd.Product.Title,
-                                sd.Amount,
-                                sd.Price
-                            })
-           })
-
-       }).OrderByDescending(b => b.bookingDate)
-       .ToListAsync();
+               .Include(b => b.Customer)
+               .Include(b => b.BookingDetails)
+                   .ThenInclude(d => d.Room)
+               .Select(b => new
+               {
+                   b.Id,
+                   UserEmail = b.Customer.Email,
+                   UserName = b.Customer.Username,
+                   b.TotalPrice,
+                   b.status,
+                   b.PaymentDate,
+                   b.IsPaid,
+                   StaffName = b.Staff != null ? b.Staff.Username : null,
+                   bookingDate = b.BookingDate,
+                   b.PaymentMethod,
+                   b.Note,
+                   CheckinDate = b.BookingDetails.Min(d => d.CheckinDate),
+                   CheckoutDate = b.BookingDetails.Max(d => d.CheckoutDate),
+                   details = b.BookingDetails.Select(d => new
+                   {
+                       BookingId = b.Id,
+                       d.RoomId,
+                       d.Room.Room_No,
+                       d.CheckinDate,
+                       d.IsCheckedIn,
+                       d.CheckoutDate,
+                       d.IsCheckedOut,
+                       d.Price,
+                       d.TotalAmount,
+                       d.Room.Room_Name,
+                       d.RoomNote,
+                       Services = b.ServiceDetails
+                                    .Where(s => s.RoomId == d.RoomId)
+                                    .Select(sd => new {
+                                        sd.Product.Title,
+                                        sd.Amount,
+                                        sd.Price
+                                    })
+                   })
+               }).OrderByDescending(b => b.bookingDate)
+               .ToListAsync();
             return Ok(bookings);
         }
         [HttpGet("my-bookings")]
@@ -145,25 +145,52 @@ namespace DoAn.Controllers
         public async Task<ActionResult<Booking>> GetBooking(int id)
         {
             var booking = await _context.Bookings
-                .Include(b => b.Customer)
-                .Include(b => b.Staff)
-                .Include(b => b.BookingDetails)
-                    .ThenInclude(d => d.Room)
+                .Include(b => b.Customer).Include(b => b.BookingDetails)
+                .ThenInclude(d => d.Room)
+                .Include(b => b.ServiceDetails)
+                    .ThenInclude(s => s.Product)
                 .FirstOrDefaultAsync(b => b.Id == id);
 
             if (booking == null)
                 return NotFound();
-            return Ok(new BookingDTO
+            var result = new BookingDTO
             {
                 Id = booking.Id,
-                PaymentMethod = booking.PaymentMethod,
-                IsPaid = booking.IsPaid,
                 BookingDate = booking.BookingDate,
+                PaymentMethod = booking.PaymentMethod,
                 Note = booking.Note,
-                Status = booking.status,
+                IsPaid = booking.IsPaid,
                 PaymentDate = booking.PaymentDate,
-                TotalPrice = booking.TotalPrice,             
-            });
+                TotalPrice = booking.TotalPrice,
+                Status = booking.status,
+                UserName = booking.Customer?.Username,
+                UserEmail = booking.Customer?.Email,
+                CheckinDate = booking.BookingDetails.Min(d => d.CheckinDate).ToString("yyyy-MM-dd"),
+                CheckoutDate = booking.BookingDetails.Max(d => d.CheckoutDate).ToString("yyyy-MM-dd"),
+
+                Details = booking.BookingDetails.Select(d => new BookingDetailDTO
+                {
+                    RoomId = d.RoomId,
+                    Room_No = d.Room.Room_No,
+                    CheckinDate = d.CheckinDate,
+                    CheckoutDate = d.CheckoutDate,
+                    Price = d.Price,
+                    IsCheckedIn = d.IsCheckedIn,
+                    IsCheckedOut = d.IsCheckedOut,
+                    RoomNote = d.RoomNote,
+                    TotalAmount = d.TotalAmount,
+                    Services = booking.ServiceDetails
+                        .Where(s => s.RoomId == d.RoomId && s.BookingId == booking.Id)
+                        .Select(s => new ServiceDTO
+                        {
+                            Title = s.Product.Title,
+                            Amount = s.Amount,
+                            Price = s.Price
+                        }).ToList()
+                }).ToList()
+            };
+
+            return Ok(result);
         }
     }
 }

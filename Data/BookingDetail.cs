@@ -16,8 +16,6 @@ namespace DoAn.Data
         public DateTime CheckinDate { get; set; }
         public DateTime CheckoutDate { get; set; }
         public double Price { get; set; }
-        [NotMapped]
-        public int Unit => (CheckoutDate - CheckinDate).Days; // Tự động tính dựa trên ngày checkin và checkout
-      
+        public double TotalAmount { get; set; } // tổng tiền phòng 
     }
 }

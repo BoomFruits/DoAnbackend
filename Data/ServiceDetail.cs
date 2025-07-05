@@ -7,7 +7,6 @@
         //Composite key BookingId + RoomId
         public int BookingId { get; set; }
         public int RoomId { get; set; } 
-        public BookingDetail BookingDetail { get; set; } = null!;
         public Guid CustomerId { get; set; }
         public User Customer { get; set; } = null!;
 

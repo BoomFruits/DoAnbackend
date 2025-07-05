@@ -20,7 +20,5 @@ namespace DoAn.DTO
 
         public string Address { get; set; } = string.Empty;
 
-        [Required]
-        public int RoleId { get; set; } = 1;
     }
 }

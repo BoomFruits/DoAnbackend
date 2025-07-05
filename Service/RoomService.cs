@@ -25,6 +25,7 @@ namespace DoAn.Service
             Console.WriteLine("Số ảnh nhận được: " + dto.NewImages.Count);
             var room = new Room
             {
+                Id = dto.Id,
                 Room_No = dto.Room_No,
                 Room_Name = dto.Room_Name,
                 Capacity = dto.Capacity,

@@ -1,5 +1,6 @@
 ﻿using DoAn.Data;
 using DoAn.DTO;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace DoAn.Service
@@ -9,11 +10,15 @@ namespace DoAn.Service
         private readonly IBookingRepository _bookingRepo;
         private readonly IEmailService _emailService;
         private readonly IUserService _userService;
-        public BookingService(IBookingRepository bookingRepo, IEmailService emailService, IUserService userService)
+        private readonly IHubContext<NotificationHub> _hubcontext;
+        private readonly DbBookingContext _context;
+        public BookingService(IBookingRepository bookingRepo, IEmailService emailService, IUserService userService,IHubContext<NotificationHub> hubcontext, DbBookingContext context)
         {
             _bookingRepo = bookingRepo;
             _emailService = emailService;
             _userService = userService;
+            _hubcontext = hubcontext;
+            _context = context;
         }
         public async Task<(bool Success, string Message, int? bookingId)> CreateBookingAsync(CreateBookingDTO dto, Guid userId)
         {
@@ -32,19 +37,13 @@ namespace DoAn.Service
             {
                 if (!await _bookingRepo.IsRoomAvailableAsync(detail.RoomId, detail.CheckinDate, detail.CheckoutDate))
                 {
-                    return (false, $"Phòng {detail.RoomId} đã được đặt trong khoảng thời gian từ " + detail.CheckinDate + "-> " + detail.CheckoutDate, null);
+                    return (false, $"Phòng {detail.Room_No} đã được đặt từ {detail.CheckinDate} đến {detail.CheckoutDate}", null);
                 }
 
-                total += detail.Price;
-                booking.BookingDetails.Add(new BookingDetail
-                {
-                    RoomId = detail.RoomId,
-                    CheckinDate = detail.CheckinDate,
-                    CheckoutDate = detail.CheckoutDate,
-                    RoomNote = detail.RoomNote ?? "",
-                    Price = detail.Price
-                });
-
+                var stayDays = (detail.CheckoutDate.Date - detail.CheckinDate.Date).Days;
+                if (stayDays <= 0)
+                    return (false, "Ngày trả phòng phải sau ngày nhận phòng", null);
+                var roomTotal = detail.Price * stayDays;
                 foreach (var service in detail.Services)
                 {
                     var product = await _bookingRepo.GetProductAsync(service.serviceId);
@@ -52,7 +51,7 @@ namespace DoAn.Service
                         return (false, $"Không đủ tồn kho cho dịch vụ Id = {service.serviceId}", null);
 
                     product.StockQuantity -= service.Amount;
-                    total += service.Amount * service.Price;
+                    total += service.Amount * (int)service.Price;
 
                     booking.ServiceDetails.Add(new ServiceDetail
                     {
@@ -63,6 +62,16 @@ namespace DoAn.Service
                         CustomerId = userId
                     });
                 }
+                total += roomTotal;
+                booking.BookingDetails.Add(new BookingDetail
+                {
+                    RoomId = detail.RoomId,
+                    CheckinDate = detail.CheckinDate,
+                    CheckoutDate = detail.CheckoutDate,
+                    RoomNote = detail.RoomNote ?? "",
+                    Price = detail.Price,
+                    TotalAmount = roomTotal
+                });
             }
 
             booking.TotalPrice = (int)total;
@@ -74,8 +83,24 @@ namespace DoAn.Service
             await _bookingRepo.SaveChangesAsync();
 
             var fullBooking = await _bookingRepo.GetFullBookingByIdAsync(booking.Id);
-            await _emailService.SendBookingConfirmationAsync(customer.Email, customer.Username, fullBooking);
-
+            await _emailService.SendBookingConfirmationAsync(customer.Email, customer.Username, fullBooking); //email
+            // Gửi thông báo người dùng qua SignalR
+            var notif = new Notification
+            {
+                UserId = userId,
+                Title = "Đặt phòng thành công",
+                Message = $"Bạn đã đặt phòng thành công với mã đơn: {booking.Id}",
+                BookingId = booking.Id
+            };
+            _context.Notifications.Add(notif);
+            await _context.SaveChangesAsync();
+            await _hubcontext.Clients.All.SendAsync("ReceiveNotification", new NotificationDTO
+            {
+                Title = "Đặt phòng thành công",
+                Message = $"Bạn đã đặt phòng thành công với mã đơn: {booking.Id}",
+                bookingId = booking.Id,
+                userId = customer.id
+            });
             return (true, "Đặt phòng thành công", booking.Id);
         }
 
@@ -180,6 +205,7 @@ namespace DoAn.Service
                     CheckinDate = d.CheckinDate,
                     CheckoutDate = d.CheckoutDate,
                     Price = d.Price,
+                    TotalAmount = d.TotalAmount,
                     IsCheckedIn = d.IsCheckedIn,
                     IsCheckedOut = d.IsCheckedOut,
                     RoomNote = d.RoomNote,
