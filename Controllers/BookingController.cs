@@ -150,7 +150,6 @@ namespace DoAn.Controllers
                 .Include(b => b.ServiceDetails)
                     .ThenInclude(s => s.Product)
                 .FirstOrDefaultAsync(b => b.Id == id);
-
             if (booking == null)
                 return NotFound();
             var result = new BookingDTO

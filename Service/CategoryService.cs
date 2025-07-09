@@ -24,20 +24,19 @@ namespace DoAn.Service
             return c == null ? null : new CategoryDTO { Id = c.Id, Name = c.Name };
         }
 
-        public async Task<CategoryDTO> CreateAsync(string name)
+        public async Task<CategoryDTO> CreateAsync(CategoryDTO dto)
         {
-            var category = new Category { Name = name };
+            var category = new Category { Name = dto.Name };
             await _categoryRepository.AddAsync(category);
             await _categoryRepository.SaveChangesAsync();
             return new CategoryDTO { Id = category.Id, Name = category.Name };
         }
 
-        public async Task<CategoryDTO?> UpdateAsync(int id, string newName)
+        public async Task<CategoryDTO?> UpdateAsync(int id, CategoryDTO dto)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
             if (category == null) return null;
-
-            category.Name = newName;
+            category.Name = dto.Name;
             await _categoryRepository.UpdateAsync(category);
             await _categoryRepository.SaveChangesAsync();
 

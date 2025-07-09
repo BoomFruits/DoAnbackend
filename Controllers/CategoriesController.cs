@@ -1,4 +1,5 @@
-﻿using DoAn.Service;
+﻿using DoAn.DTO;
+using DoAn.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,16 +28,16 @@ namespace DoAn.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] string name)
+        public async Task<IActionResult> Create([FromBody] CategoryDTO dto)
         {
-            var c = await _categoriesService.CreateAsync(name);
+            var c = await _categoriesService.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = c.Id }, c);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] string name)
+        public async Task<IActionResult> Update(int id, [FromBody] CategoryDTO dto)
         {
-            var c = await _categoriesService.UpdateAsync(id, name);
+            var c = await _categoriesService.UpdateAsync(id, dto);
             return c == null ? NotFound() : Ok(c);
         }
 
