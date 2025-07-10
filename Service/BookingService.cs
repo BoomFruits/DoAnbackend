@@ -222,6 +222,74 @@ namespace DoAn.Service
                 }).ToList()
             }).ToList();
         }
+        public async Task<List<BookingDTO>> GetAllBookingAsync(string mode = "today", DateTime? from = null, DateTime? to = null)
+        {
+            DateTime today = DateTime.Today;
+            var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
+
+            IQueryable<Booking> query = _context.Bookings
+                .Include(b => b.Customer)
+                .Include(b => b.Staff)
+                .Include(b => b.BookingDetails)
+                    .ThenInclude(d => d.Room)
+                .Include(b => b.ServiceDetails)
+                    .ThenInclude(s => s.Product);
+
+            // Filter theo mode
+            if (mode == "today")
+            {
+                query = query.Where(b => b.BookingDate.Date == today);
+            }
+            else if (mode == "month")
+            {
+                query = query.Where(b => b.BookingDate >= firstDayOfMonth);
+            }
+            else if (mode == "custom" && from.HasValue && to.HasValue)
+            {
+                query = query.Where(b => b.BookingDate.Date >= from.Value.Date && b.BookingDate.Date <= to.Value.Date);
+            }
+
+            var bookings = await query.OrderByDescending(b => b.BookingDate).ToListAsync();
+
+            return bookings.Select(b => new BookingDTO
+            {
+                Id = b.Id,
+                BookingDate = b.BookingDate,
+                PaymentMethod = b.PaymentMethod,
+                Note = b.Note,
+                IsPaid = b.IsPaid,
+                PaymentDate = b.PaymentDate,
+                TotalPrice = b.TotalPrice,
+                Status = b.status,
+                StaffName = b.Staff?.Username,
+                UserEmail = b.Customer?.Email,
+                UserName = b.Customer?.Username,
+                CheckinDate = b.BookingDetails.Min(d => d.CheckinDate).ToString(),
+                CheckoutDate = b.BookingDetails.Max(d => d.CheckoutDate).ToString(),
+                Details = b.BookingDetails.Select(d => new BookingDetailDTO
+                {
+                    RoomId = d.RoomId,
+                    Room_No = d.Room.Room_No,
+                    Room_Name = d.Room.Room_Name,
+                    CheckinDate = d.CheckinDate,
+                    CheckoutDate = d.CheckoutDate,
+                    Price = d.Price,
+                    TotalAmount = d.TotalAmount,
+                    IsCheckedIn = d.IsCheckedIn,
+                    IsCheckedOut = d.IsCheckedOut,
+                    RoomNote = d.RoomNote,
+                    Services = b.ServiceDetails
+                        .Where(s => s.RoomId == d.RoomId)
+                        .Select(s => new ServiceDTO
+                        {
+                            Title = s.Product.Title,
+                            Amount = s.Amount,
+                            Price = s.Price
+                        }).ToList()
+                }).ToList()
+            }).ToList();
+        }
+
     }
 
 }

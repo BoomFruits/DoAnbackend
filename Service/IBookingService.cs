@@ -11,6 +11,7 @@ namespace DoAn.Service
         Task<(bool success,string messsage)> CancelBookingAsync(int bookingId);
         Task<(bool Success, string Message)> DeleteBookingAsync(int bookingId);
         Task<List<BookingDTO>> GetMyBookingsAsync(Guid customerId);
+        Task<List<BookingDTO>> GetAllBookingAsync(string mode = "today", DateTime? from = null, DateTime? to = null);
     }
 }
 

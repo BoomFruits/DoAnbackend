@@ -46,7 +46,7 @@ namespace DoAn.Controllers
             {
                 filteredBookings = filteredBookings.Where(b => b.BookingDate.Date >= from.Value.Date && b.BookingDate.Date <= to.Value.Date);
             }
-            // Dữ liệu tổng quan
+            // Dữ liệu tổng quan Các thống kê theo ngày và tháng
             var totalBookings = await filteredBookings.CountAsync();
             var totalRevenue = await filteredBookings
                 .Where(b => b.IsPaid)
@@ -56,11 +56,8 @@ namespace DoAn.Controllers
                 .SumAsync(b => (decimal?)b.TotalPrice) ?? 0;
             var successCount = await filteredBookings.CountAsync(b => b.status != 2); // status != canceled
             var canceledCount = await filteredBookings.CountAsync(b => b.status == 2);
-
-            // Các thống kê theo ngày và tháng (không phụ thuộc chế độ lọc)
             var todayBookings = await _context.Bookings.Where(b => b.BookingDate == today).CountAsync();
             var monthBookings = await _context.Bookings.CountAsync(b => b.BookingDate >= firstDayOfMonth);
-
             var todayCheckins = await _context.Bookings.Where(b => b.BookingDetails.Any(d => d.IsCheckedIn && d.CheckinDate.Date == today.Date)).CountAsync();
             var monthCheckins = await _context.BookingDetails.CountAsync(d => d.IsCheckedIn && d.CheckinDate >= firstDayOfMonth);
             var todayCheckouts = await _context.Bookings.Where(b => b.BookingDetails.Any(d => d.IsCheckedOut && d.CheckoutDate.Date == today.Date)).CountAsync();
@@ -69,21 +66,22 @@ namespace DoAn.Controllers
             var userCount = await _context.Users.CountAsync();
             var activeRooms = await _context.Rooms.CountAsync(r => r.IsAvailable);
 
-            // Top phòng theo số lượt đặt
-            var topRooms = await _context.BookingDetails
+            // Top phòng theo số lượt đặt ( lọc custom )
+            var topRooms = await filteredBookings
+                .SelectMany(b => b.BookingDetails)
                 .GroupBy(d => d.RoomId)
                 .OrderByDescending(g => g.Count())
                 .Take(5)
                 .Select(g => new
                 {
                     RoomId = g.Key,
-                    Count = g.Count(),
+                    Count = g.Count(),  
                     RoomNo = g.First().Room.Room_No
                 })
                 .ToListAsync();
-
-            // Top dịch vụ theo tổng số lượng dùng
-            var topServices = await _context.ServiceDetail
+            // Top dịch vụ theo tổng số lượng dùng ( lọc custom )
+            var topServices = await filteredBookings
+                .SelectMany(s => s.ServiceDetails)
                 .GroupBy(s => s.ProductId)
                 .OrderByDescending(g => g.Sum(x => x.Amount))
                 .Take(5)

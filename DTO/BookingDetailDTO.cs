@@ -4,6 +4,7 @@
     {
         public int RoomId { get; set; }
         public string Room_No { get; set; } = string.Empty;
+        public string Room_Name { get; set; } = string.Empty;
         public DateTime CheckinDate { get; set; }
         public DateTime CheckoutDate { get; set; }
         public bool IsCheckedIn { get; set; }

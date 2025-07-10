@@ -44,51 +44,10 @@ namespace DoAn.Controllers
         }
         [HttpGet("get_all")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAllBooking()
-         {
-            var bookings = await _context.Bookings
-               .Include(b => b.Customer)
-               .Include(b => b.BookingDetails)
-                   .ThenInclude(d => d.Room)
-               .Select(b => new
-               {
-                   b.Id,
-                   UserEmail = b.Customer.Email,
-                   UserName = b.Customer.Username,
-                   b.TotalPrice,
-                   b.status,
-                   b.PaymentDate,
-                   b.IsPaid,
-                   StaffName = b.Staff != null ? b.Staff.Username : null,
-                   bookingDate = b.BookingDate,
-                   b.PaymentMethod,
-                   b.Note,
-                   CheckinDate = b.BookingDetails.Min(d => d.CheckinDate),
-                   CheckoutDate = b.BookingDetails.Max(d => d.CheckoutDate),
-                   details = b.BookingDetails.Select(d => new
-                   {
-                       BookingId = b.Id,
-                       d.RoomId,
-                       d.Room.Room_No,
-                       d.CheckinDate,
-                       d.IsCheckedIn,
-                       d.CheckoutDate,
-                       d.IsCheckedOut,
-                       d.Price,
-                       d.TotalAmount,
-                       d.Room.Room_Name,
-                       d.RoomNote,
-                       Services = b.ServiceDetails
-                                    .Where(s => s.RoomId == d.RoomId)
-                                    .Select(sd => new {
-                                        sd.Product.Title,
-                                        sd.Amount,
-                                        sd.Price
-                                    })
-                   })
-               }).OrderByDescending(b => b.bookingDate)
-               .ToListAsync();
-            return Ok(bookings);
+        public async Task<IActionResult> GetAllBooking(string mode = "today", DateTime? from = null, DateTime? to = null)
+        {
+            var result = await _bookingService.GetAllBookingAsync(mode, from, to);
+            return Ok(result);
         }
         [HttpGet("my-bookings")]
         public async Task<IActionResult> GetMyBookings()
